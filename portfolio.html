@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCM System - Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-red: #ff3366;
+            --primary-purple: #8b5cf6;
+            --primary-blue: #3b82f6;
+            --dark-bg: #0a0a0f;
+            --white: #ffffff;
+            --gradient-1: linear-gradient(135deg, var(--primary-red), var(--primary-purple));
+            --gradient-2: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+            --gradient-3: linear-gradient(135deg, var(--primary-blue), var(--primary-red));
+        }
+
+        .light-theme {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-theme {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1a1a2e;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: none;
+            scroll-behavior: smooth;
+            will-change: transform;
+        }
+
+        /* Performance optimizations */
+        .gpu-accelerated {
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--primary-purple);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            mix-blend-mode: difference;
+            backdrop-filter: blur(2px);
+            will-change: transform;
+        }
+
+        .cursor-follower {
+            width: 12px;
+            height: 12px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        /* 3D Scene Container */
+        .scene-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* TCM Logo Popup */
+        .logo-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.2), rgba(10, 10, 15, 0.95));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(20px);
+            opacity: 1;
+            transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .tcm-logo {
+            position: relative;
+            font-size: 8rem;
+            font-weight: 900;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: logoEntrance 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            text-shadow: 0 0 50px rgba(139, 92, 246, 0.5);
+            filter: drop-shadow(0 0 30px rgba(255, 51, 102, 0.7));
+        }
+
+        .tcm-logo::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, var(--primary-purple), transparent, var(--primary-red), transparent);
+            animation: logoSpin 4s linear infinite;
+            z-index: -1;
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0.7;
+        }
+
+        @keyframes logoEntrance {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) rotateY(180deg);
+                filter: blur(20px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2) rotateY(90deg);
+                filter: blur(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+                filter: blur(0px);
+            }
+        }
+
+        @keyframes logoSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .logo-subtitle {
+            position: absolute;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            animation: subtitleFade 1s ease-out 2s forwards;
+        }
+
+        @keyframes subtitleFade {
+            to { opacity: 1; transform: translateX(-50%) translateY(-20px); }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(30px);
+            z-index: 1000;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .header.scrolled {
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(40px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .animated-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+        }
+
+        .animated-logo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .animated-logo:hover::before {
+            opacity: 1;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-2);
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .theme-toggle:hover::before {
+            left: 0;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+            border-color: var(--primary-purple);
+            color: white;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 120px 2rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 6rem 0;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .hero-content {
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .hero h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: heroSlide 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            position: relative;
+            will-change: transform;
+        }
+
+        .hero p {
+            font-size: 1.8rem;
+            margin-bottom: 3rem;
+            color: var(--text-secondary);
+            animation: heroFade 1.5s ease-out 0.5s both;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button {
+            background: var(--gradient-3);
+            color: white;
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.6s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .cta-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(255, 51, 102, 0.4);
+        }
+
+        @keyframes heroSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(-100px) rotateX(45deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg);
+            }
+        }
+
+        @keyframes heroFade {
+            0% {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Sections */
+        .section {
+            padding: 6rem 0;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .section h2 {
+            font-size: 3.5rem;
+            text-align: center;
+            margin-bottom: 4rem;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+            will-change: transform;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-15px) rotateX(10deg) rotateY(5deg);
+            box-shadow: 0 30px 80px var(--shadow);
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .skill-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .skill-item {
+            background: var(--gradient-2);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.5s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .skill-item:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .skill-item:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            background: var(--gradient-1);
+            color: white;
+            text-decoration: none;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-2);
+            transform: scale(0);
+            border-radius: 50%;
+            transition: transform 0.5s ease;
+        }
+
+        .social-link:hover::before {
+            transform: scale(1);
+        }
+
+        .social-link:hover {
+            transform: translateY(-10px) scale(1.2) rotateY(180deg);
+            box-shadow: 0 20px 50px rgba(139, 92, 246, 0.5);
+        }
+
+        .social-link span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mouse Movement Effects */
+        .mouse-follower {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.3s ease-out;
+            z-index: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3rem; }
+            .hero p { font-size: 1.4rem; }
+            .tcm-logo { font-size: 5rem; }
+            .container { padding: 100px 1rem 1rem; }
+            .social-links { gap: 2rem; }
+            .cards-grid { grid-template-columns: 1fr; gap: 2rem; }
+        }
+    </style>
+</head>
+<body class="dark-theme gpu-accelerated">
+    <!-- Logo Popup -->
+    <div class="logo-popup" id="logoPopup">
+        <div style="position: relative;">
+            <div class="tcm-logo">TCM</div>
+            <div class="logo-subtitle">CRAFTING THE FUTURE</div>
+        </div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-follower" id="cursorFollower"></div>
+
+    <!-- 3D Scene -->
+    <div class="scene-3d" id="scene3d"></div>
+
+    <!-- Mouse Follower Effect -->
+    <div class="mouse-follower" id="mouseFollower"></div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="animated-logo">TCM SYSTEM</div>
+        <button class="theme-toggle" id="themeToggle">🌙 Theme</button>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content" data-tilt>
+                <h1>Hello, I'm TCM</h1>
+                <p id="dynamicText">Software Engineering Student | Future ML Engineer</p>
+                <button class="cta-button">Explore My Journey</button>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="section" id="about">
+            <h2>About Me</h2>
+            <div class="cards-grid">
+                <div class="card" data-tilt>
+                    <h3 style="color: var(--primary-purple); margin-bottom: 1.5rem; font-size: 1.5rem;">🎓 Education</h3>
+                    <p>Software Engineering Student at Daffodil International University, passionate about creating innovative solutions and exploring the fascinating world of Machine Learning.</p>
+                </div>
+                <div class="card" data-tilt>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1.5rem; font-size: 1.5rem;">🚀 Future Goals</h3>
+                    <p>Aspiring ML Engineer with a vision to revolutionize technology through artificial intelligence and data-driven solutions. Currently building strong foundations in programming and algorithms.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section class="section" id="skills">
+            <h2>Technical Skills</h2>
+            <div class="card" data-tilt style="text-align: center;">
+                <h3 style="margin-bottom: 2rem; color: var(--primary-blue); font-size: 1.8rem;">Programming & Technologies</h3>
+                <div class="skill-container">
+                    <span class="skill-item">Python</span>
+                    <span class="skill-item">SQL</span>
+                    <span class="skill-item">C</span>
+                    <span class="skill-item">Machine Learning</span>
+                    <span class="skill-item">Data Analysis</span>
+                    <span class="skill-item">Algorithm Design</span>
+                    <span class="skill-item">Problem Solving</span>
+                    <span class="skill-item">Software Development</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="section" id="contact">
+            <h2>Connect With Me</h2>
+            <div class="social-links">
+                <a href="https://www.facebook.com/techytcm/" target="_blank" class="social-link" title="Facebook">
+                    <span>📘</span>
+                </a>
+                <a href="https://www.linkedin.com/in/techytcm/" target="_blank" class="social-link" title="LinkedIn">
+                    <span>💼</span>
+                </a>
+                <a href="https://www.instagram.com/_techytcm_/" target="_blank" class="social-link" title="Instagram">
+                    <span>📷</span>
+                </a>
+                <a href="https://github.com/techytcm/" target="_blank" class="social-link" title="GitHub">
+                    <span>💻</span>
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Performance optimizations
+        const RAF = requestAnimationFrame;
+        const THROTTLE_DELAY = 16;
+        let lastTime = 0;
+
+        // Smooth logo popup
+        setTimeout(() => {
+            const popup = document.getElementById('logoPopup');
+            popup.style.opacity = '0';
+            popup.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 1000);
+        }, 4000);
+
+        // Enhanced cursor with smooth movement
+        const cursor = document.getElementById('cursor');
+        const cursorFollower = document.getElementById('cursorFollower');
+        const mouseFollower = document.getElementById('mouseFollower');
+        
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+        let followerX = 0, followerY = 0;
+
+        function updateCursor() {
+            const dX = mouseX - cursorX;
+            const dY = mouseY - cursorY;
+            cursorX += dX * 0.3;
+            cursorY += dY * 0.3;
+
+            const dX2 = mouseX - followerX;
+            const dY2 = mouseY - followerY;
+            followerX += dX2 * 0.1;
+            followerY += dY2 * 0.1;
+
+            cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+            cursorFollower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
+            mouseFollower.style.transform = `translate3d(${mouseX - 150}px, ${mouseY - 150}px, 0)`;
+
+            RAF(updateCursor);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        updateCursor();
+
+        // Enhanced mouse movement effects for elements
+        document.addEventListener('mousemove', (e) => {
+            const currentTime = Date.now();
+            if (currentTime - lastTime < THROTTLE_DELAY) return;
+            lastTime = currentTime;
+
+            const mouseXPercent = e.clientX / window.innerWidth;
+            const mouseYPercent = e.clientY / window.innerHeight;
+            
+            // Hero content parallax
+            const heroContent = document.querySelector('.hero-content');
+            if (heroContent) {
+                const moveX = (mouseXPercent - 0.5) * 30;
+                const moveY = (mouseYPercent - 0.5) * 30;
+                heroContent.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) rotateY(${moveX * 0.1}deg) rotateX(${-moveY * 0.1}deg)`;
+            }
+
+            // Cards tilt effect
+            document.querySelectorAll('[data-tilt]').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const cardX = rect.left + rect.width / 2;
+                const cardY = rect.top + rect.height / 2;
+                
+                const deltaX = (e.clientX - cardX) / (rect.width / 2);
+                const deltaY = (e.clientY - cardY) / (rect.height / 2);
+                
+                if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
+                    card.style.transform = `perspective(1000px) rotateX(${deltaY * 10}deg) rotateY(${deltaX * 10}deg) translateZ(20px)`;
+                } else {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+                }
+            });
+
+            // Section titles parallax
+            document.querySelectorAll('.section h2').forEach(title => {
+                const rect = title.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    const moveX = (mouseXPercent - 0.5) * 20;
+                    title.style.transform = `translate3d(${moveX}px, 0, 0)`;
+                }
+            });
+        });
+
+        // Smooth scroll effects
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const header = document.getElementById('header');
+            
+            if (scrolled > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+
+            // Parallax for background elements
+            const scene = document.getElementById('scene3d');
+            scene.style.transform = `translate3d(0, ${scrolled * 0.5}px, 0)`;
+        });
+
+        // Theme toggle with smooth transition
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            body.classList.toggle('dark-theme');
+            body.classList.toggle('light-theme');
+            
+            themeToggle.style.transform = 'rotateY(360deg) scale(1.1)';
+            setTimeout(() => {
+                themeToggle.style.transform = 'rotateY(0deg) scale(1)';
+            }, 600);
+        });
+
+        // Enhanced hover effects
+        document.querySelectorAll('a, button, .card, .skill-item').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.style.transform += ' scale(1.8)';
+                cursor.style.borderColor = 'var(--primary-red)';
+                cursorFollower.style.transform += ' scale(2.5)';
+            });
+            
+            el.addEventListener('mouseleave', () => {
+                cursor.style.transform = cursor.style.transform.replace(' scale(1.8)', '');
+                cursor.style.borderColor = 'var(--primary-purple)';
+                cursorFollower.style.transform = cursorFollower.style.transform.replace(' scale(2.5)', '');
+            });
+        });
+
+        // Dynamic text animation
+        const texts = [
+            'Software Engineering Student | Future ML Engineer',
+            'Python Developer | Data Enthusiast',
+            'Problem Solver | Innovation Seeker',
+            'Code Craftsman | Tech Visionary'
+        ];
+        let textIndex = 0;
+        const dynamicText = document.getElementById('dynamicText');
+        
+        function changeText() {
+            dynamicText.style.opacity = '0';
+            dynamicText.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                dynamicText.textContent = texts[textIndex];
+                dynamicText.style.opacity = '1';
+                dynamicText.style.transform = 'translateY(0)';
+                textIndex = (textIndex + 1) % texts.length;
+            }, 500);
+        }
+        
+        setInterval(changeText, 4000);
+
+        // Three.js 3D Scene
+        let scene, camera, renderer, particles;
+        
+        function init3D() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('scene3d').appendChild(renderer.domElement);
+
+            // Create particle system
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particleCount = 2000;
+            const posArray = new Float32Array(particleCount * 3);
+            const colorArray = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 2000;
+                colorArray[i] = Math.random();
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+
+            // Create geometric shapes
+            const geometries = [
+                new THREE.TetrahedronGeometry(50, 0),
+                new THREE.OctahedronGeometry(40, 0),
+                new THREE.IcosahedronGeometry(45, 0)
+            ];
+
+            for (let i = 0; i < 15; i++) {
+                const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(Math.random(), 0.8, 0.6),
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.3
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(
+                    (Math.random() - 0.5) * 1500,
+                    (Math.random() - 0.5) * 1500,
+                    (Math.random() - 0.5) * 1000
+                );
+                mesh.rotation.set(
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI
+                );
+                scene.add(mesh);
+            }
+
+            camera.position.z = 500;
+            animate3D();
+        }
+
+        let mouseX3D = 0, mouseY3D = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX3D = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY3D = (e.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        function animate3D() {
+            RAF(animate3D);
+
+            if (particles) {
+                particles.rotation.x += 0.001;
+                particles.rotation.y += 0.002;
+                
+                // Mouse interaction
+                particles.rotation.x += mouseY3D * 0.5;
+                particles.rotation.y += mouseX3D * 0.5;
+
+                const positions = particles.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i + 1] += Math.sin(Date.now() * 0.001 + positions[i] * 0.01) * 0.2;
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            // Animate geometric shapes
+            scene.children.forEach(child => {
+                if (child instanceof THREE.Mesh) {
+                    child.rotation.x += 0.005;
+                    child.rotation.y += 0.01;
+                    child.position.y += Math.sin(Date.now() * 0.001) * 0.5;
+                }
+            });
+
+            camera.position.x += (mouseX3D * 100 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY3D * 100 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize 3D scene
+        init3D();
+
+        // Smooth page loading
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+        });
+
+        // Intersection Observer for smooth animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInScale 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .section h2, .skill-item').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Add smooth fade-in animation for elements
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInScale {
+                0% {
+                    opacity: 0;
+                    transform: translateY(60px) scale(0.9);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Enhanced skill hover effects
+        document.querySelectorAll('.skill-item').forEach(skill => {
+            skill.addEventListener('mouseenter', () => {
+                skill.style.transform = 'translateY(-8px) scale(1.15) rotateZ(5deg)';
+                skill.style.boxShadow = '0 20px 40px rgba(139, 92, 246, 0.6)';
+            });
+            
+            skill.addEventListener('mouseleave', () => {
+                skill.style.transform = 'translateY(0) scale(1) rotateZ(0deg)';
+                skill.style.boxShadow = 'none';
+            });
+        });
+
+        // CTA Button ripple effect
+        document.querySelector('.cta-button').addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                background: rgba(255, 255, 255, 0.5);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s ease-out;
+                pointer-events: none;
+            `;
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+
+        // Add ripple animation
+        const rippleStyle = document.createElement('style');
+        rippleStyle.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(rippleStyle);
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Performance optimization: Reduce animations when not focused
+        let isPageVisible = true;
+        document.addEventListener('visibilitychange', () => {
+            isPageVisible = !document.hidden;
+            if (isPageVisible) {
+                animate3D();
+            }
+        });
+
+        // Add loading transition
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 1s ease-in-out';
+    </script>
+</body>
+</html>
